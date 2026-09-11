@@ -10,16 +10,17 @@ jobs:
   run-some-tests:
     runs-on: ubuntu-latest
     steps:
-      - name: Test AWS Creds
-        run: aws sts get-caller-identity
-      - name: Debug OIDC token claims
-        run: |
-          IDTOKEN=$(curl -s -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" | jq -r '.value')
-          echo "$IDTOKEN" | cut -d '.' -f2 | base64 -d 2>/dev/null | jq .
       - name: Configure AWS Credentials for OIDC
         uses: aws-actions/configure-aws-credentials@v6.2.4
         with:
           aws-region: eu-central-1
           role-to-assume: ${{ secrets.AWS_IAM_ROLE }}
-      
+
+      - name: Test AWS Creds
+        run: aws sts get-caller-identity
+
+      - name: Debug OIDC token claims
+        run: |
+          IDTOKEN=$(curl -s -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" | jq -r '.value')
+          echo "$IDTOKEN" | cut -d '.' -f2 | base64 -d 2>/dev/null | jq .
