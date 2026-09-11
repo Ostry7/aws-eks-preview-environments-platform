@@ -12,7 +12,7 @@ This project is a hands-on exploration of **platform engineering** patterns: sel
  
 | Phase | Scope | Status |
 |---|---|---|
-| 0 | Repo structure, OIDC, remote state, budget alarms, ADRs | ✅ |
+| 0 | Repo structure, OIDC, remote state, budget alarms | ✅ |
 | 1 | VPC + EKS + ECR + Karpenter (Terraform modules) | 🔲 |
 | 2 | Demo app + baseline pipeline (no cache) | 🔲 |
 | 3 | Layered CI/CD caching + measurements | 🔲 |
