@@ -10,13 +10,14 @@ This project is a hands-on exploration of **platform engineering** patterns: sel
 
 ## Roadmap
  
-| Phase | Scope |
-|---|---|
-| 0 | Repo structure, OIDC, remote state, budget alarms, ADRs |
-| 1 | VPC + EKS + ECR + Karpenter (Terraform modules) |
-| 2 | Demo app + baseline pipeline (no cache) |
-| 3 | Layered CI/CD caching + measurements |
-| 4 | ArgoCD ApplicationSet + DNS/TLS preview environments |
-| 5 | Lambda automation (reaper, cost reporter, scale-to-zero, PR commenter) |
-| 6 | Security scanning, Kyverno policies, External Secrets, dashboards |
-| 7 | Metrics, architecture diagram, demo, final documentation |
+| Phase | Scope | Status |
+|---|---|---|
+| 0 | Repo structure, OIDC, remote state, budget alarms, ADRs | ✅ |
+| 1 | VPC + EKS + ECR + Karpenter (Terraform modules) | 🔲 |
+| 2 | Demo app + baseline pipeline (no cache) | 🔲 |
+| 3 | Layered CI/CD caching + measurements | 🔲 |
+| 4 | ArgoCD ApplicationSet + DNS/TLS preview environments | 🔲 |
+| 5 | Lambda automation (reaper, cost reporter, scale-to-zero, PR commenter) | 🔲 |
+| 6 | Security scanning, Kyverno policies, External Secrets, dashboards | 🔲 |
+| 7 | Metrics, architecture diagram, demo, final documentation | 🔲 |
+
