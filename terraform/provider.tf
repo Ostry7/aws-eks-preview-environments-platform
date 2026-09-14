@@ -10,10 +10,10 @@ terraform {
     }
   }
   backend "s3" {
-    bucket         = "terraform-state-ostry7-2341789"
-    key            = "infra/terraform.tfstate"
-    region         = "eu-north-1"
-    encrypt        = true
-    use_lockfile   = true
+    bucket       = "terraform-state-ostry7-2341789"
+    key          = "infra/terraform.tfstate"
+    region       = "eu-north-1"
+    encrypt      = true
+    use_lockfile = true
   }
 }
