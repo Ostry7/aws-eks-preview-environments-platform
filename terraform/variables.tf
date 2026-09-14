@@ -26,3 +26,21 @@ variable "tertiary-priv_cidr" {
   type        = string
   default     = "10.0.3.0/24"
 }
+
+variable "primary-pub_cidr" {
+  description = "CIDR block for primary-pub"
+  type        = string
+  default     = "10.0.101.0/24"
+}
+
+variable "secondary-pub_cidr" {
+  description = "CIDR block for secondary-pub"
+  type        = string
+  default     = "10.0.102.0/24"
+}
+
+variable "tertiary-pub_cidr" {
+  description = "CIDR block for tertiary-pub"
+  type        = string
+  default     = "10.0.103.0/24"
+}
