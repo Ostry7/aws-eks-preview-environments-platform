@@ -118,6 +118,46 @@ resource "aws_route_table_association" "public" {
     route_table_id = aws_route_table.route_table.id
 }
 
+# Create NAT Gateway + route table for private subnets
+resource "aws_eip" "nat" {
+  domain = "vpc"
+}
+
+resource "aws_nat_gateway" "main" {
+  allocation_id = aws_eip.nat.id
+  subnet_id     = aws_subnet.primary-pub.id  # NAT has to be in public subnet
+
+  tags = {
+    Name = "main-nat"
+  }
+
+  depends_on = [aws_internet_gateway.main]
+}
+
+resource "aws_route_table" "private" {
+  vpc_id = aws_vpc.main-vpc.id
+
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.main.id
+  }
+
+  tags = {
+    Name = "private-route-table"
+  }
+}
+
+resource "aws_route_table_association" "private" {
+  for_each = {
+    primary   = aws_subnet.primary-priv
+    secondary = aws_subnet.secondary-priv
+    tertiary  = aws_subnet.tertiary-priv
+  }
+
+  subnet_id      = each.value.id
+  route_table_id = aws_route_table.private.id
+}
+
 # Create ECR
 resource "aws_ecr_repository" "ecr_repo" {
   name                 = "main_ecr_repo"
