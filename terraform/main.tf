@@ -17,7 +17,10 @@ resource "aws_internet_gateway" "main" {
 # Create availability_zones with 3Private Subnets AZs and 3Public Subnets AZs
 #Priv AZs
 data "aws_availability_zones" "available" {
-  state = "available"
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 
 }
 
@@ -27,6 +30,7 @@ resource "aws_subnet" "primary-priv" {
   availability_zone = data.aws_availability_zones.available.names[0]
 
   tags = {
+    "kubernetes.io/role/internal-elb" = 1 #from https://developer.hashicorp.com/terraform/tutorials/kubernetes/eks
     Name = "primary-priv_subnet"
   }
 }
@@ -37,6 +41,7 @@ resource "aws_subnet" "secondary-priv" {
   availability_zone = data.aws_availability_zones.available.names[1]
 
   tags = {
+    "kubernetes.io/role/internal-elb" = 1 #from https://developer.hashicorp.com/terraform/tutorials/kubernetes/eks
     Name = "secondary-priv_subnet"
   }
 }
@@ -47,6 +52,7 @@ resource "aws_subnet" "tertiary-priv" {
   availability_zone = data.aws_availability_zones.available.names[2]
 
   tags = {
+    "kubernetes.io/role/internal-elb" = 1 #from https://developer.hashicorp.com/terraform/tutorials/kubernetes/eks
     Name = "tertiary-priv_subnet"
   }
 }
@@ -59,6 +65,7 @@ resource "aws_subnet" "primary-pub" {
   map_public_ip_on_launch  = true
 
   tags = {
+    "kubernetes.io/role/elb" = 1 #from https://developer.hashicorp.com/terraform/tutorials/kubernetes/eks
     Name = "primary-pub_subnet"
   }
 }
@@ -70,6 +77,7 @@ resource "aws_subnet" "secondary-pub" {
   map_public_ip_on_launch  = true
 
   tags = {
+    "kubernetes.io/role/elb" = 1 #from https://developer.hashicorp.com/terraform/tutorials/kubernetes/eks
     Name = "secondary-pub_subnet"
   }
 }
@@ -81,6 +89,7 @@ resource "aws_subnet" "tertiary-pub" {
   map_public_ip_on_launch  = true
 
   tags = {
+    "kubernetes.io/role/elb" = 1 #from https://developer.hashicorp.com/terraform/tutorials/kubernetes/eks
     Name = "tertiary-pub_subnet"
   }
 }
@@ -107,4 +116,20 @@ resource "aws_route_table_association" "public" {
 
     subnet_id      = each.value.id
     route_table_id = aws_route_table.route_table.id
+}
+
+# Create ECR
+resource "aws_ecr_repository" "ecr_repo" {
+  name                 = "main_ecr_repo"
+  image_tag_mutability = "IMMUTABLE_WITH_EXCLUSION"
+
+  image_tag_mutability_exclusion_filter { #all tags are immutable except "latest*"
+    filter      = "latest*"
+    filter_type = "WILDCARD"
+  }
+
+  image_tag_mutability_exclusion_filter { #all tags are immutable except "dev-*"
+    filter      = "dev-*"
+    filter_type = "WILDCARD"
+  }
 }
