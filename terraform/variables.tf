@@ -44,3 +44,9 @@ variable "tertiary-pub_cidr" {
   type        = string
   default     = "10.0.103.0/24"
 }
+
+variable "k8s_cluster_name" {
+  description = "Kubernetes cluster name"
+  type = string
+  default = "k8s_cluster"
+}
