@@ -198,6 +198,9 @@ module "eks" {
     ami_type = "AL2023_x86_64_STANDARD"
 
   }
+  node_security_group_tags = {
+    "karpenter.sh/discovery" = var.k8s_cluster_name
+  }
 
   eks_managed_node_groups = {
     one = {
@@ -234,7 +237,8 @@ module "karpenter" {
   version = "20.8.5"
 
   cluster_name = module.eks.cluster_name
-
+  node_iam_role_name             = "KarpenterNodeRole-${var.k8s_cluster_name}"
+  node_iam_role_use_name_prefix  = false
   node_iam_role_additional_policies = {
     AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
   }
