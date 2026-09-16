@@ -31,6 +31,7 @@ resource "aws_subnet" "primary-priv" {
 
   tags = {
     "kubernetes.io/role/internal-elb" = 1 #from https://developer.hashicorp.com/terraform/tutorials/kubernetes/eks
+    "karpenter.sh/discovery"            = var.k8s_cluster_name  #for Karpenter
     Name = "primary-priv_subnet"
   }
 }
@@ -42,6 +43,7 @@ resource "aws_subnet" "secondary-priv" {
 
   tags = {
     "kubernetes.io/role/internal-elb" = 1 #from https://developer.hashicorp.com/terraform/tutorials/kubernetes/eks
+    "karpenter.sh/discovery"            = var.k8s_cluster_name  #for Karpenter
     Name = "secondary-priv_subnet"
   }
 }
@@ -53,6 +55,7 @@ resource "aws_subnet" "tertiary-priv" {
 
   tags = {
     "kubernetes.io/role/internal-elb" = 1 #from https://developer.hashicorp.com/terraform/tutorials/kubernetes/eks
+    "karpenter.sh/discovery"            = var.k8s_cluster_name  #for Karpenter
     Name = "tertiary-priv_subnet"
   }
 }
@@ -170,7 +173,7 @@ module "eks" {
   version = "20.8.5"
 
   cluster_name    = var.k8s_cluster_name
-  cluster_version = "1.36"
+  cluster_version = "1.33"
 
   cluster_endpoint_public_access           = true
   enable_cluster_creator_admin_permissions = true
@@ -179,6 +182,7 @@ module "eks" {
     aws-ebs-csi-driver = {
       service_account_role_arn = module.irsa-ebs-csi.iam_role_arn
     }
+    eks-pod-identity-agent = {}
   }
 
   vpc_id = aws_vpc.main-vpc.id
@@ -205,19 +209,8 @@ module "eks" {
       max_size     = 3
       desired_size = 2
     }
-
-    two = {
-      name = "node-group-2"
-
-      instance_types = ["t3.small"]
-
-      min_size     = 1
-      max_size     = 2
-      desired_size = 1
-    }
   }
 }
-
 
 # https://aws.amazon.com/blogs/containers/amazon-ebs-csi-driver-is-now-generally-available-in-amazon-eks-add-ons/ 
 data "aws_iam_policy" "ebs_csi_policy" {
@@ -233,4 +226,39 @@ module "irsa-ebs-csi" {
   provider_url                  = module.eks.oidc_provider
   role_policy_arns              = [data.aws_iam_policy.ebs_csi_policy.arn]
   oidc_fully_qualified_subjects = ["system:serviceaccount:kube-system:ebs-csi-controller-sa"]
+}
+
+# Create Karpenter
+module "karpenter" {
+  source  = "terraform-aws-modules/eks/aws//modules/karpenter"
+  version = "20.8.5"
+
+  cluster_name = module.eks.cluster_name
+
+  node_iam_role_additional_policies = {
+    AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+  }
+}
+resource "aws_eks_pod_identity_association" "karpenter" {
+  cluster_name    = module.eks.cluster_name
+  namespace       = "kube-system"
+  service_account = "karpenter"
+  role_arn        = module.karpenter.iam_role_arn
+}
+resource "helm_release" "karpenter" {
+  namespace        = "kube-system"
+  name             = "karpenter"
+  repository       = "oci://public.ecr.aws/karpenter"
+  chart            = "karpenter"
+  version          = "1.1.1"
+
+  set {
+    name  = "settings.clusterName"
+    value = module.eks.cluster_name
+  }
+  set {
+    name  = "settings.interruptionQueue"
+    value = module.karpenter.queue_name
+  }
+
 }
