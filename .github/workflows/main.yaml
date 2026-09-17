@@ -10,11 +10,31 @@ jobs:
   run-some-tests:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Configure AWS Credentials for OIDC
         uses: aws-actions/configure-aws-credentials@v6.2.4
         with:
           aws-region: eu-central-1
           role-to-assume: ${{ secrets.AWS_IAM_ROLE }}
 
-      - name: Test AWS Creds
-        run: aws sts get-caller-identity
+      - run: terraform init
+        working-directory: terraform
+
+      - run: terraform apply -auto-approve -lock-timeout=60s
+        working-directory: terraform
+
+      - name: Get K8s cluster name from TF Output
+        id: tf_output
+        run: |
+          echo "cluster_name=$(terraform output -raw cluster_name)" >> "$CLUSTER_NAME"
+          
+      - name: Create Karpenter EC2NodeClass and NodePool
+        run:  |
+         kubectl apply -f EC2NodeClass.yaml
+         kubectl apply -f NodePool
+        working-directory: k8s
+
+
+          
