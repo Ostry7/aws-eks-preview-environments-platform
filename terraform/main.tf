@@ -231,6 +231,22 @@ module "irsa-ebs-csi" {
   oidc_fully_qualified_subjects = ["system:serviceaccount:kube-system:ebs-csi-controller-sa"]
 }
 
+# Add Access entry for Github Actions
+resource "aws_eks_access_entry" "ci_role" {
+  cluster_name  = module.eks.cluster_name
+  principal_arn = "arn:aws:iam::521764600585:role/github-actions-admin-role"
+}
+
+resource "aws_eks_access_policy_association" "ci_role_admin" {
+  cluster_name  = module.eks.cluster_name
+  principal_arn = aws_eks_access_entry.ci_role.principal_arn
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+
+  access_scope {
+    type = "cluster"
+  }
+}
+
 # Create Karpenter
 module "karpenter" {
   source  = "terraform-aws-modules/eks/aws//modules/karpenter"
@@ -265,4 +281,11 @@ resource "helm_release" "karpenter" {
     value = module.karpenter.queue_name
   }
 
+  depends_on = [
+  module.eks,
+  aws_eks_access_entry.ci_role,
+  aws_eks_pod_identity_association.karpenter,
+  ]
+
 }
+
