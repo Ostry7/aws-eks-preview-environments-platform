@@ -280,12 +280,5 @@ resource "helm_release" "karpenter" {
     name  = "settings.interruptionQueue"
     value = module.karpenter.queue_name
   }
-
-  depends_on = [
-  module.eks,
-  aws_eks_access_entry.ci_role,
-  aws_eks_pod_identity_association.karpenter,
-  ]
-
 }
 
