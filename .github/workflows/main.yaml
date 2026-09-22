@@ -30,10 +30,11 @@ jobs:
       - name: Get K8s cluster name from TF Output
         id: tf_output
         run: |
-          echo "cluster_name=$(terraform output -raw cluster_name)" >> "$CLUSTER_NAME"
+          echo "cluster_name=$(terraform output -raw cluster_name)" >> "$GITHUB_OUTPUT"
           
       - name: Create Karpenter EC2NodeClass and NodePool
         run:  |
+         aws eks update-kubeconfig --name ${{ steps.tf_output.outputs.cluster_name }} --region eu-north-1
          kubectl apply -f EC2NodeClass.yaml
          kubectl apply -f NodePool
         working-directory: k8s
