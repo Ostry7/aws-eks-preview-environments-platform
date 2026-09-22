@@ -24,9 +24,14 @@ jobs:
       - run: terraform init
         working-directory: terraform
 
-      - run: terraform apply -auto-approve -lock-timeout=60s
+      - run: terraform apply -auto-approve -lock-timeout=60s -target=aws_eks_access_entry.ci_role -target=aws_eks_access_policy_association.ci_role_admin
         working-directory: terraform
 
+      - run: sleep 15
+
+      - run: terraform apply -auto-approve -lock-timeout=60s
+        working-directory: terraform
+        
       - name: Get K8s cluster name from TF Output
         id: tf_output
         working-directory: terraform
