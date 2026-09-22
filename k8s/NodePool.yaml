@@ -23,3 +23,4 @@ spec:
     cpu: 10
   disruption:
     consolidationPolicy: WhenEmptyOrUnderutilized
+    consolidateAfter: 30s
