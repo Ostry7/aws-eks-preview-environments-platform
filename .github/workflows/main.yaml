@@ -29,6 +29,7 @@ jobs:
 
       - name: Get K8s cluster name from TF Output
         id: tf_output
+        working-directory: terraform
         run: |
           echo "cluster_name=$(terraform output -raw cluster_name)" >> "$GITHUB_OUTPUT"
           
@@ -36,7 +37,7 @@ jobs:
         run:  |
          aws eks update-kubeconfig --name ${{ steps.tf_output.outputs.cluster_name }} --region eu-north-1
          kubectl apply -f EC2NodeClass.yaml
-         kubectl apply -f NodePool
+         kubectl apply -f NodePool.yaml
         working-directory: k8s
 
 
