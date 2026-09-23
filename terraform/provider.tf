@@ -30,8 +30,7 @@ provider "aws" {
 data "aws_eks_cluster_auth" "this" {
   name = module.eks.cluster_name
   depends_on = [
-    aws_eks_access_entry.ci_role,
-    aws_eks_access_policy_association.ci_role_admin,
+    module.eks
   ]
 }
 
