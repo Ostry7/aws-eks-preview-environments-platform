@@ -49,7 +49,7 @@ The platform requires dynamic provisioning of EC2 nodes for ephemeral preview en
 
 During the implementation, three independent blocking issues were encountered, as described below.
 
-1. Selection of compatible versions: EKS 1.33 + Karpenter 1.6.3
+1. Selection of compatible versions: EKS 1.35 + Karpenter 1.6.3
 
 Originally, the cluster was created with `cluster_version = “1.36”` (the latest available EKS version at the time the project began) and the Karpenter Helm chart 1.1.1. This combination proved to be incompatible:
 
@@ -131,3 +131,27 @@ kubectl delete nodeclaims --all
 ```
 
 This is not an architectural issue, but rather a result of iterative debugging (changing the NodePool several times without clearing previous attempts)—noted here as an operational tip for the future, not as a design decision.
+
+## Local Terraform modules:
+Local modules in Terraform is just an directory with `.tf` files. Let's look at quick analogy:
+- `variable` -> is an function argument (`INPUT`)
+- `output` -> is and return value (`OUTPUT`)
+
+Root module is main directory from where we type `terraform init / plan/ apply`. This `root main.tf` file call other modules. Directory named `/modules` is just and naming convention, terraform doesn't require this name, it's looking at:
+```bash
+source = "./directory"
+```
+---
+
+### IMPORTANT!
+The modules know nothing about each other and cannot see root. Echa module is isolated; data flows in ony one direction:
+
+```bash
+ROOT_MODULE-----(variable)---->MODULE
+ROOT_MODULE<----(output)------MODULE
+```
+So how `module A` can  pass sth into `module B`? -> ALWAYS THROUGH ROOT
+
+```
+MODULE_A---->output---->ROOT_MODULE---->variable---->MODULE_B
+```
