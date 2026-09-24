@@ -55,9 +55,3 @@ module "irsa-ebs-csi" {
   role_policy_arns              = [data.aws_iam_policy.ebs_csi_policy.arn]
   oidc_fully_qualified_subjects = ["system:serviceaccount:kube-system:ebs-csi-controller-sa"]
 }
-
-# Add Access entry for Github Actions
-resource "aws_eks_access_entry" "ci_role" {
-  cluster_name  = module.eks.cluster_name
-  principal_arn = "arn:aws:iam::521764600585:role/github-actions-admin-role"
-}
