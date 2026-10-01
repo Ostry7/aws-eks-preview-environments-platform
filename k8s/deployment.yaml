@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  main_devops_app
+  namespace: prod
+  labels:
+    app:  main_devops_app
+spec:
+  selector:
+    matchLabels:
+      app: main_devops_app
+  replicas: 2
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app:  main_devops_app
+    spec:
+      containers:
+      - name:  main_devops_app
+        image:  ${{ IMAGE_TAG }}
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 100m
+            memory: 100Mi
+        ports:
+        - containerPort: 5000
