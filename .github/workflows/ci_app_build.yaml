@@ -2,10 +2,13 @@ name: ci_app_build.yaml
 on:
   workflow_dispatch: 
 
+permissions:
+  id-token: write
+  contents: read
   
 jobs:
   acr_push:
-    runs-on: ubuntu:slim
+    runs-on: ubuntu-slim
     steps:
       - name: Repo checkout
         uses: actions/checkout@v4
