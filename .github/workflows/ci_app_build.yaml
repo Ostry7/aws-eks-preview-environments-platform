@@ -1,9 +1,7 @@
 name: ci_app_build.yaml
 on:
   workflow_dispatch: 
-  push: 
-    paths: 
-    - 'app/**'
+
   
 jobs:
   acr_push:
