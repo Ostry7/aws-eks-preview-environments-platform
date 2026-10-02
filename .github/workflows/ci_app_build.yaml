@@ -8,7 +8,7 @@ permissions:
   
 jobs:
   acr_push:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     steps:
       - name: Repo checkout
         uses: actions/checkout@v4
