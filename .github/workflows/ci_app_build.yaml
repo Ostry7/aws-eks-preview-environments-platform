@@ -1,0 +1,34 @@
+name: ci_app_build.yaml
+on:
+  workflow_dispatch: 
+  push: 
+    paths: 
+    - 'app/**'
+  
+jobs:
+  acr_push:
+    runs-on: ubuntu:latest
+    steps:
+    - name: Repo checkout
+      uses: actions/checkout@v4
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Get ECR repo name
+      id: get-repo-name
+      working-directory: terraform
+      run: |
+        echo "ecr_repo_name=$(terraform output -raw ecr_repo_name)" >> "$GITHUB_OUTPUT"
+      
+    - name: Build, tag, and push docker image to Amazon ECR
+      env:
+        REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        REPOSITORY: $ {{ steps.get-repo-name.outputs.ecr_repo_name }}
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
+        docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+
+    
