@@ -31,7 +31,7 @@ module "eks" {
 
   cluster_addons = {
     aws-ebs-csi-driver = {
-      service_account_role_arn = module.irsa-ebs-csi.iam_role_arn
+      
     }
     eks-pod-identity-agent = {}
   }
