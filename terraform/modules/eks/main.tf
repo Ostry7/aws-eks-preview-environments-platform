@@ -1,4 +1,4 @@
-# Create EKS (based on:https://developer.hashicorp.com/terraform/tutorials/kubernetes/eks)
+# Create EKS (based on: https://developer.hashicorp.com/terraform/tutorials/kubernetes/eks)
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "20.8.5"
@@ -31,7 +31,11 @@ module "eks" {
 
   cluster_addons = {
     aws-ebs-csi-driver = {
-      
+      most_recent              = true
+      service_account_role_arn = module.ebs_csi_irsa.iam_role_arn
+      timeouts = {
+        create = "30m"
+      }
     }
     eks-pod-identity-agent = {}
   }
@@ -42,6 +46,7 @@ module "eks" {
   eks_managed_node_group_defaults = {
     ami_type = "AL2023_x86_64_STANDARD"
   }
+
   node_security_group_tags = {
     "karpenter.sh/discovery" = var.k8s_cluster_name
   }
@@ -50,11 +55,27 @@ module "eks" {
     one = {
       name = "node-group-1"
 
-      instance_types = ["t3.small"]
+      instance_types = ["t3.medium"]
 
       min_size     = 1
       max_size     = 3
       desired_size = 2
+    }
+  }
+}
+
+# IAM role (IRSA) for the EBS CSI driver
+module "ebs_csi_irsa" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version = "~> 5.39"
+
+  role_name             = "${var.k8s_cluster_name}-ebs-csi"
+  attach_ebs_csi_policy = true
+
+  oidc_providers = {
+    main = {
+      provider_arn               = module.eks.oidc_provider_arn
+      namespace_service_accounts = ["kube-system:ebs-csi-controller-sa"]
     }
   }
 }
