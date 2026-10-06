@@ -5,3 +5,7 @@ output "cluster_name" {
 output "ecr_repo_name" {
   value = module.ecr.ecr_repo_name
 }
+
+output "region"{
+  value = var.aws_region
+}
