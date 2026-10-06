@@ -42,9 +42,7 @@ jobs:
           REPOSITORY: ${{ steps.get-repo-name.outputs.ecr_repo_name }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          echo "REGISTRY: ${REGISTRY}"
-          echo "REPOSITORY: ${REPOSITORY}"
-          echo "IMAGE_TAG: ${IMAGE_TAG}"
-
+          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
+          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
 
     
