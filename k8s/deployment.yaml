@@ -21,8 +21,8 @@ spec:
         app:  main-devops-app
     spec:
       containers:
-      - name:  main-devops-app
-        image:  ${IMAGE}
+      - name: main-devops-app
+        image: ${IMAGE}
         resources:
           requests:
             cpu: 100m
@@ -30,5 +30,16 @@ spec:
           limits:
             cpu: 100m
             memory: 100Mi
+        env:
+        - name: DB_HOST
+          value: postgres
+        - name: DB_NAME
+          valueFrom: { configMapKeyRef: { name: db-configmap, key: POSTGRES_DB } }
+        - name: DB_USER
+          valueFrom: { configMapKeyRef: { name: db-configmap, key: POSTGRES_USER } }
+        - name: DB_PASSWORD
+          valueFrom: { secretKeyRef: { name: postgres-secret, key: POSTGRES_PASSWORD } }
+        - name: ENV
+          value: test
         ports:
         - containerPort: 5000
