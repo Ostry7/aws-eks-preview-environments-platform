@@ -30,17 +30,19 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Get ECR repo name
-        id: get-repo-name
+      - name: Get required env variables
+        id: get-vars
         working-directory: terraform
         run: |
           echo "ecr_repo_name=$(terraform output -raw ecr_repo_name)" >> "$GITHUB_OUTPUT"
+          echo "cluster_name=$(terraform output -raw cluster_name)" >> "$GITHUB_OUTPUT"
+          echo "region=$(terraform output -raw region)" >> "$GITHUB_OUTPUT"
       
       - name: Build, tag, and push docker image to Amazon ECR
         working-directory: app
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          REPOSITORY: ${{ steps.get-repo-name.outputs.ecr_repo_name }}
+          REPOSITORY: ${{ steps.get-vars.outputs.ecr_repo_name }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
@@ -48,7 +50,11 @@ jobs:
 
       - name: Deploy to EKS Cluster
         working-directory: k8s
+        env:
+          REGION: ${{ steps.get-vars.outputs.region }}
+          CLUSTER_NAME: ${{ steps.get-vars.outputs.cluster_name }}
         run: |
+          aws eks update-kubeconfig --name $CLUSTER_NAME --region $REGION
           kubectl apply -f "namespace.yaml"
           kubectl apply -f "deployment.yaml"
           kubectl apply -f "service.yaml"
