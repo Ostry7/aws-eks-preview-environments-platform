@@ -54,6 +54,8 @@ jobs:
           REGION: ${{ steps.get-vars.outputs.region }}
           CLUSTER_NAME: ${{ steps.get-vars.outputs.cluster_name }}
         run: |
+          echo "CLSUTER NAME: $CLUSTER_NAME"
+          echo "REGION: $REGION"
           aws eks update-kubeconfig --name $CLUSTER_NAME --region $REGION
           kubectl apply -f "namespace.yaml"
           kubectl apply -f "deployment.yaml"
