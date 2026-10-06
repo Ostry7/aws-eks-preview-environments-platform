@@ -1,0 +1,8 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: db-configmap
+  namespace: test
+data:
+  POSTGRES_DB:  devops_db
+  POSTGRES_USER:  app
