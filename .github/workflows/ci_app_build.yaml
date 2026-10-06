@@ -65,13 +65,13 @@ jobs:
           kubectl apply -f NodePool.yaml
 
           # baza
-          kubectl apply -f postgres-secret.yaml
-          kubectl apply -f db-configmap.yaml
+          kubectl apply -f db/secret.yaml
+          kubectl apply -f db/configmap.yaml
           kubectl -n test create configmap postgres-init \
             --from-file=init-db.sql=../app/db/init-db.sql \
             --dry-run=client -o yaml | kubectl apply -f -
-          kubectl apply -f postgres-service.yaml
-          kubectl apply -f postgres-statefulset.yaml
+          kubectl apply -f db/service.yaml
+          kubectl apply -f db/statefulset.yaml
           kubectl -n test rollout status sts/postgres --timeout=300s
 
           # aplikacja
