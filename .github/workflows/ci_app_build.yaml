@@ -59,11 +59,23 @@ jobs:
         run: |
           export IMAGE="$REGISTRY/$REPOSITORY:$IMAGE_TAG"
           aws eks update-kubeconfig --name $CLUSTER_NAME --region $REGION
-          kubectl apply -f "namespace.yaml"
+          # infrastruktura / węzły
+          kubectl apply -f namespace.yaml
+          kubectl apply -f EC2NodeClass.yaml
+          kubectl apply -f NodePool.yaml
+
+          # baza
+          kubectl apply -f postgres-secret.yaml
+          kubectl apply -f db-configmap.yaml
+          kubectl -n test create configmap postgres-init \
+            --from-file=init-db.sql=../app/db/init-db.sql \
+            --dry-run=client -o yaml | kubectl apply -f -
+          kubectl apply -f postgres-service.yaml
+          kubectl apply -f postgres-statefulset.yaml
+          kubectl -n test rollout status sts/postgres --timeout=300s
+
+          # aplikacja
           envsubst '${IMAGE}' < deployment.yaml | kubectl apply -f -
-          kubectl apply -f "deployment.yaml"
-          kubectl apply -f "service.yaml"
-          kubectl apply -f "EC2NodeClass.yaml"
-          kubectl apply -f "NodePool.yaml"
-          kubectl rollout status deployment/main-devops-app -n test --timeout=300s
+          kubectl apply -f service.yaml
+          kubectl -n test rollout status deployment/main-devops-app --timeout=300s
     
