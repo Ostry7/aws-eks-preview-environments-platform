@@ -62,6 +62,6 @@ jobs:
           kubectl apply -f "service.yaml"
           kubectl apply -f "EC2NodeClass.yaml"
           kubectl apply -f "NodePool.yaml"
-          kubectl rollout restart deployment main-devops-app
-          kubectl rollout status deployment main-devops-app
+          kubectl rollout restart deployment main-devops-app -n test
+          kubectl rollout status deployment main-devops-app -n test
     
