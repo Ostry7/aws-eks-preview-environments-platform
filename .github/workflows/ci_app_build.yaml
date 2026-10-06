@@ -63,6 +63,7 @@ jobs:
           kubectl apply -f namespace.yaml
           kubectl apply -f EC2NodeClass.yaml
           kubectl apply -f NodePool.yaml
+          kubectl apply -f db/storage.yaml
 
           # baza
           kubectl apply -f db/secret.yaml
