@@ -29,16 +29,10 @@ module "eks" {
     }
   }
 
-  cluster_addons = {
-    aws-ebs-csi-driver = {
-      most_recent              = true
-      service_account_role_arn = module.ebs_csi_irsa.iam_role_arn
-      timeouts = {
-        create = "30m"
-      }
-    }
-    eks-pod-identity-agent = {}
-  }
+cluster_addons = {
+  aws-ebs-csi-driver     = { most_recent = true }
+  eks-pod-identity-agent = { most_recent = true }
+}
 
   vpc_id     = var.vpc_id
   subnet_ids = var.private_subnet_ids
@@ -55,7 +49,7 @@ module "eks" {
     one = {
       name = "node-group-1"
 
-      instance_types = ["t3.medium"]
+      instance_types = ["t3.small"]
 
       min_size     = 1
       max_size     = 3
@@ -64,18 +58,19 @@ module "eks" {
   }
 }
 
-# IAM role (IRSA) for the EBS CSI driver
-module "ebs_csi_irsa" {
-  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-  version = "~> 5.39"
+# EBS Pod identity
+module "ebs_csi_pod_identity" {
+  source  = "terraform-aws-modules/eks-pod-identity/aws"
+  version = "~> 1.4"
 
-  role_name             = "${var.k8s_cluster_name}-ebs-csi"
-  attach_ebs_csi_policy = true
+  name                      = "${var.k8s_cluster_name}-ebs-csi"
+  attach_aws_ebs_csi_policy = true
 
-  oidc_providers = {
+  associations = {
     main = {
-      provider_arn               = module.eks.oidc_provider_arn
-      namespace_service_accounts = ["kube-system:ebs-csi-controller-sa"]
+      cluster_name    = module.eks.cluster_name
+      namespace       = "kube-system"
+      service_account = "ebs-csi-controller-sa"
     }
   }
 }
