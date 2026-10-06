@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: main_devops_app
-  namespace: prod
+  namespace: test_env
 spec:
   type: LoadBalancer
   selector:

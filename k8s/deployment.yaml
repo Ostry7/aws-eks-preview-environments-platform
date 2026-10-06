@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name:  main_devops_app
-  namespace: prod
+  namespace: test_env
   labels:
     app:  main_devops_app
 spec:
