@@ -51,17 +51,18 @@ jobs:
       - name: Deploy to EKS Cluster
         working-directory: k8s
         env:
-          REGION: ${{ steps.get-vars.outputs.region }}
           CLUSTER_NAME: ${{ steps.get-vars.outputs.cluster_name }}
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: ${{ steps.get-vars.outputs.ecr_repo_name }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          echo "CLSUTER NAME: $CLUSTER_NAME"
-          echo "REGION: $REGION"
+          export IMAGE="$REGISTRY/$REPOSITORY:$IMAGE_TAG"
           aws eks update-kubeconfig --name $CLUSTER_NAME --region $REGION
           kubectl apply -f "namespace.yaml"
+          envsubst '${IMAGE}' < deployment.yaml | kubectl apply -f -
           kubectl apply -f "deployment.yaml"
           kubectl apply -f "service.yaml"
           kubectl apply -f "EC2NodeClass.yaml"
           kubectl apply -f "NodePool.yaml"
-          kubectl rollout restart deployment main-devops-app -n test
-          kubectl rollout status deployment main-devops-app -n test
+          kubectl rollout status deployment/main-devops-app -n test --timeout=300s
     
