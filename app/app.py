@@ -1,7 +1,5 @@
 ### AI GENERATED CODE
 
-
-
 from flask import Flask, jsonify, request, render_template_string
 from prometheus_flask_exporter import PrometheusMetrics
 from prometheus_client import Counter
@@ -9,7 +7,6 @@ import psycopg2
 import psycopg2.extras
 import os
 import random
-import hvac # for HashiCorp Vault
 
 app = Flask(__name__)
 metrics = PrometheusMetrics(app)
@@ -20,30 +17,13 @@ health_counter = Counter('health_requests_total', 'Total number of /health reque
 crud_counter   = Counter('crud_operations_total', 'Total CRUD operations', ['table', 'operation'])
 
 # ── DB connection ──────────────────────────────────────────────────────────────
-def get_db_credentials():
-    client = hvac.Client(url=os.getenv("VAULT_ADDR", "http://vault.vault.svc.cluster.local:8200"))
-
-    # Autoryzacja przez K8s Service Account token, który jest automatycznie
-    # zamontowany w podzie pod tą ścieżką
-    with open("/var/run/secrets/kubernetes.io/serviceaccount/token") as f:
-        jwt = f.read()
-
-    client.auth.kubernetes.login(role="app-role", jwt=jwt)
-
-    secret = client.secrets.database.generate_credentials(
-        name="app-role",
-        mount_point="postgres"
-    )
-    return secret["data"]["username"], secret["data"]["password"]
-
 def get_db():
-    user, password = get_db_credentials()
     return psycopg2.connect(
         host     = os.getenv("DB_HOST",     "localhost"),
         port     = os.getenv("DB_PORT",     "5432"),
         dbname   = os.getenv("DB_NAME",     "devops_db"),
-        user     = user,
-        password = password,
+        user     = os.getenv("DB_USER",     "postgres"),
+        password = os.getenv("DB_PASSWORD", "postgres"),
     )
 
 # ── HTML template ──────────────────────────────────────────────────────────────
@@ -384,7 +364,6 @@ HTML = """<!DOCTYPE html>
 <header>
   <div class="logo">devops<span>/</span>portfolio <span>— db manager</span></div>
   <div class="env-badge">{{ env }}</div>
-  <div class="env-badge" title="container image tag">img: {{ image_tag }}</div>
   <div class="db-badge {{ 'dr' if db_mode == 'DR' else 'primary' }}">
     db: {{ db_mode }}
   </div>
@@ -650,8 +629,7 @@ def index():
         return render_template_string(HTML,
             users=users, products=products,
             env=os.getenv("ENV", "dev"),
-            db_mode=os.getenv("DB_MODE", "PRIMARY"),
-            image_tag=os.getenv("IMAGE_TAG", "unknown"))
+            db_mode=os.getenv("DB_MODE", "PRIMARY"))
     except Exception as e:
         return f"<pre>DB error: {e}</pre>", 500
 
