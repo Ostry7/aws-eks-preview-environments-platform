@@ -12,9 +12,10 @@ module "karpenter" {
   source  = "terraform-aws-modules/eks/aws//modules/karpenter"
   version = "20.8.5"
 
-  cluster_name                      = var.cluster_name
-  node_iam_role_name                = "KarpenterNodeRole-${var.k8s_cluster_name}"
-  node_iam_role_use_name_prefix     = false
+  cluster_name = var.cluster_name
+
+  node_iam_role_name            = "KarpenterNodeRole-${var.k8s_cluster_name}"
+  node_iam_role_use_name_prefix = false
   node_iam_role_additional_policies = {
     AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
   }
@@ -26,6 +27,8 @@ resource "aws_eks_pod_identity_association" "karpenter" {
   service_account = "karpenter"
   role_arn        = module.karpenter.iam_role_arn
 }
+
+
 
 resource "helm_release" "karpenter" {
   namespace  = "kube-system"
