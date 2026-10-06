@@ -1,0 +1,17 @@
+# Create production namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prod_env
+  labels:
+    name: prod_env
+
+
+---
+# Create test namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: test_env
+  labels:
+    name: test_env
