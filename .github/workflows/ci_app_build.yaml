@@ -52,6 +52,7 @@ jobs:
         working-directory: k8s
         env:
           CLUSTER_NAME: ${{ steps.get-vars.outputs.cluster_name }}
+          REGION: ${{ steps.get-vars.outputs.region }}
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           REPOSITORY: ${{ steps.get-vars.outputs.ecr_repo_name }}
           IMAGE_TAG: ${{ github.sha }}
