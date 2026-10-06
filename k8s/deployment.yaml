@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name:  main-devops-app
-        image:  ${{ IMAGE_TAG }}
+        image:  ${IMAGE}
         resources:
           requests:
             cpu: 100m
