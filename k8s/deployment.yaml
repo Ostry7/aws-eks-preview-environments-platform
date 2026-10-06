@@ -1,14 +1,14 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name:  main_devops_app
+  name:  main-devops-app
   namespace: test
   labels:
-    app:  main_devops_app
+    app:  main-devops-app
 spec:
   selector:
     matchLabels:
-      app: main_devops_app
+      app: main-devops-app
   replicas: 2
   strategy:
     rollingUpdate:
@@ -18,10 +18,10 @@ spec:
   template:
     metadata:
       labels:
-        app:  main_devops_app
+        app:  main-devops-app
     spec:
       containers:
-      - name:  main_devops_app
+      - name:  main-devops-app
         image:  ${{ IMAGE_TAG }}
         resources:
           requests:
