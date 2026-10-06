@@ -46,4 +46,14 @@ jobs:
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
 
+      - name: Deploy to EKS Cluster
+        working-directory: k8s
+        run: |
+          kubectl apply -f "namespace.yaml"
+          kubectl apply -f "deployment.yaml"
+          kubectl apply -f "service.yaml"
+          kubectl apply -f "EC2NodeClass.yaml"
+          kubectl apply -f "NodePool.yaml"
+          kubectl rollout restart deployment main_devops-app
+          kubectl rollout status deployment main_devops-app
     
