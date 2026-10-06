@@ -16,7 +16,7 @@ jobs:
       - name: Configure AWS Credentials for OIDC
         uses: aws-actions/configure-aws-credentials@v6.2.4
         with:
-          aws-region: eu-central-1
+          aws-region: eu-north-1
           role-to-assume: ${{ secrets.AWS_IAM_ROLE }}
 
       - name: Setup Terraform
