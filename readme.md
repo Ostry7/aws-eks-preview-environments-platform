@@ -14,7 +14,7 @@ This project is a hands-on exploration of **platform engineering** patterns: sel
 |---|---|---|
 | 0 | Repo structure, OIDC, remote state, budget alarms | ✅ |
 | 1 | VPC + EKS + ECR + Karpenter (Terraform modules) | ✅ |
-| 2 | Demo app + baseline pipeline (no cache) | 🔲 |
+| 2 | Demo app + baseline pipeline (no cache) | ✅ |
 | 3 | Layered CI/CD caching + measurements | 🔲 |
 | 4 | ArgoCD ApplicationSet + DNS/TLS preview environments | 🔲 |
 | 5 | Lambda automation (reaper, cost reporter, scale-to-zero, PR commenter) | 🔲 |
