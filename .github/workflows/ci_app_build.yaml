@@ -1,6 +1,10 @@
 name: ci_app_build.yaml
 on:
   workflow_dispatch: 
+  push:
+    branches: [main]
+    paths: 
+      - "app/**"
 
 permissions:
   id-token: write
