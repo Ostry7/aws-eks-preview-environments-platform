@@ -32,21 +32,21 @@ HTML = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DevOps Portfolio — Preview Platform</title>
+<title>DevOps Portfolio — DB Manager</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg:       #0f0a1f;
-    --surface:  #171230;
-    --border:   #2d2650;
-    --accent:   #a78bfa;
-    --accent2:  #fb923c;
-    --text:     #ede9fe;
-    --muted:    #7c7a99;
-    --radius:   10px;
+    --bg:       #0d0f14;
+    --surface:  #14171f;
+    --border:   #252932;
+    --accent:   #00e5c3;
+    --accent2:  #ff4d6d;
+    --text:     #e2e8f0;
+    --muted:    #64748b;
+    --radius:   6px;
     --mono:     'IBM Plex Mono', monospace;
     --sans:     'Syne', sans-serif;
   }
@@ -103,14 +103,14 @@ HTML = """<!DOCTYPE html>
     letter-spacing: .1em;
   }
   .db-badge.primary {
-    border: 1px solid rgba(167,139,250,.4);
-    color: #a78bfa;
-    background: rgba(167,139,250,.08);
+    border: 1px solid rgba(0,229,195,.4);
+    color: #00e5c3;
+    background: rgba(0,229,195,.08);
   }
   .db-badge.dr {
-    border: 1px solid rgba(251,146,60,.4);
-    color: #fb923c;
-    background: rgba(251,146,60,.08);
+    border: 1px solid rgba(255,77,109,.4);
+    color: #ff4d6d;
+    background: rgba(255,77,109,.08);
   }
 
   /* ── LAYOUT ── */
@@ -160,7 +160,7 @@ HTML = """<!DOCTYPE html>
     gap: 10px;
     padding: 12px 16px;
     border-bottom: 1px solid var(--border);
-    background: #1f1940;
+    background: #1a1e28;
   }
   .table-name {
     font-family: var(--mono);
@@ -182,7 +182,7 @@ HTML = """<!DOCTYPE html>
     font-size: 12px;
   }
   thead tr {
-    background: #130e28;
+    background: #11141b;
   }
   th {
     padding: 9px 14px;
@@ -195,12 +195,12 @@ HTML = """<!DOCTYPE html>
   }
   td {
     padding: 9px 14px;
-    border-bottom: 1px solid #1f1940;
+    border-bottom: 1px solid #1a1e28;
     color: var(--text);
     vertical-align: middle;
   }
   tr:last-child td { border-bottom: none; }
-  tr:hover td { background: rgba(167,139,250,.04); }
+  tr:hover td { background: rgba(0,229,195,.04); }
 
   .action-btn {
     cursor: pointer;
@@ -213,18 +213,18 @@ HTML = """<!DOCTYPE html>
     letter-spacing: .05em;
   }
   .btn-edit {
-    background: rgba(167,139,250,.1);
+    background: rgba(0,229,195,.1);
     color: var(--accent);
-    border: 1px solid rgba(167,139,250,.25);
+    border: 1px solid rgba(0,229,195,.25);
     margin-right: 4px;
   }
-  .btn-edit:hover { background: rgba(167,139,250,.2); }
+  .btn-edit:hover { background: rgba(0,229,195,.2); }
   .btn-delete {
-    background: rgba(251,146,60,.1);
+    background: rgba(255,77,109,.1);
     color: var(--accent2);
-    border: 1px solid rgba(251,146,60,.25);
+    border: 1px solid rgba(255,77,109,.25);
   }
-  .btn-delete:hover { background: rgba(251,146,60,.2); }
+  .btn-delete:hover { background: rgba(255,77,109,.2); }
 
   /* ── SIDE PANEL ── */
   .side-panel {
@@ -240,7 +240,7 @@ HTML = """<!DOCTYPE html>
   }
   .form-tabs {
     display: flex;
-    background: #130e28;
+    background: #11141b;
     border-bottom: 1px solid var(--border);
   }
   .tab-btn {
@@ -260,7 +260,7 @@ HTML = """<!DOCTYPE html>
   .tab-btn.active {
     color: var(--accent);
     border-bottom-color: var(--accent);
-    background: rgba(167,139,250,.05);
+    background: rgba(0,229,195,.05);
   }
   .tab-btn:hover:not(.active) { color: var(--text); }
 
@@ -279,7 +279,7 @@ HTML = """<!DOCTYPE html>
   }
   .field input, .field select {
     width: 100%;
-    background: #0f0a1f;
+    background: #0d0f14;
     border: 1px solid var(--border);
     border-radius: 4px;
     color: var(--text);
@@ -291,9 +291,9 @@ HTML = """<!DOCTYPE html>
   }
   .field input:focus, .field select:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 2px rgba(167,139,250,.1);
+    box-shadow: 0 0 0 2px rgba(0,229,195,.1);
   }
-  .field select option { background: #0f0a1f; }
+  .field select option { background: #0d0f14; }
 
   .table-selector {
     display: flex;
@@ -303,7 +303,7 @@ HTML = """<!DOCTYPE html>
   .tbl-radio {
     flex: 1;
     padding: 7px;
-    background: #0f0a1f;
+    background: #0d0f14;
     border: 1px solid var(--border);
     border-radius: 4px;
     font-family: var(--mono);
@@ -316,7 +316,7 @@ HTML = """<!DOCTYPE html>
   .tbl-radio.selected {
     border-color: var(--accent);
     color: var(--accent);
-    background: rgba(167,139,250,.07);
+    background: rgba(0,229,195,.07);
   }
 
   .dynamic-fields { min-height: 40px; }
@@ -325,7 +325,7 @@ HTML = """<!DOCTYPE html>
     width: 100%;
     padding: 10px;
     background: var(--accent);
-    color: #0f0a1f;
+    color: #0d0f14;
     border: none;
     border-radius: 4px;
     font-family: var(--mono);
@@ -350,8 +350,8 @@ HTML = """<!DOCTYPE html>
     margin-top: 12px;
     display: none;
   }
-  .msg.success { background: rgba(167,139,250,.1); color: var(--accent); border: 1px solid rgba(167,139,250,.2); }
-  .msg.error   { background: rgba(251,146,60,.1); color: var(--accent2); border: 1px solid rgba(251,146,60,.2); }
+  .msg.success { background: rgba(0,229,195,.1); color: var(--accent); border: 1px solid rgba(0,229,195,.2); }
+  .msg.error   { background: rgba(255,77,109,.1); color: var(--accent2); border: 1px solid rgba(255,77,109,.2); }
 
   /* scrollbar */
   ::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -362,7 +362,7 @@ HTML = """<!DOCTYPE html>
 <body>
 
 <header>
-  <div class="logo">devops<span>/</span>portfolio <span>— preview platform</span></div>
+  <div class="logo">devops<span>/</span>portfolio <span>— db manager</span></div>
   <div class="env-badge">{{ env }}</div>
   <div class="db-badge {{ 'dr' if db_mode == 'DR' else 'primary' }}">
     db: {{ db_mode }}
