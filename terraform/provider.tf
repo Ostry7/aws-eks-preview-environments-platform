@@ -23,9 +23,15 @@ terraform {
 }
 
 provider "aws" {
+  alias = "stockholm"
   region = var.aws_region
   
 }
+
+data "aws_ecrpublic_authorization_token" "token" {
+  provider = aws.stockholm
+}
+
 
 provider "helm" {
   kubernetes {

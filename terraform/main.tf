@@ -31,7 +31,9 @@ module "karpenter" {
   providers = {
     helm = helm
   }
-
+  
+  ecr_public_username = data.aws_ecrpublic_authorization_token.token.user_name
+  ecr_public_password = data.aws_ecrpublic_authorization_token.token.password
   cluster_name     = module.eks.cluster_name
   k8s_cluster_name = var.k8s_cluster_name
 }
