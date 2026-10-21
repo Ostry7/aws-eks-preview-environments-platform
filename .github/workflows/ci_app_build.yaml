@@ -41,16 +41,28 @@ jobs:
           echo "ecr_repo_name=$(terraform output -raw ecr_repo_name)" >> "$GITHUB_OUTPUT"
           echo "cluster_name=$(terraform output -raw cluster_name)" >> "$GITHUB_OUTPUT"
           echo "region=$(terraform output -raw region)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
       
-      - name: Build, tag, and push docker image to Amazon ECR
-        working-directory: app
-        env:
-          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          REPOSITORY: ${{ steps.get-vars.outputs.ecr_repo_name }}
-          IMAGE_TAG: ${{ github.sha }}
-        run: |
-          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
-          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+      - name: Build and push docker image to Amazon ECR (gha cache)
+        uses: docker/build-push-action@v7
+        with:
+          context: app
+          push: true
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ steps.get-vars.outputs.ecr_repo_name }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      #- name: Build, tag, and push docker image to Amazon ECR
+      #  working-directory: app
+      #  env:
+      #    REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      #    REPOSITORY: ${{ steps.get-vars.outputs.ecr_repo_name }}
+      #    IMAGE_TAG: ${{ github.sha }}
+      #  run: |
+      #    docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
+      #    docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
 
       - name: Deploy to EKS Cluster
         working-directory: k8s
@@ -63,13 +75,13 @@ jobs:
         run: |
           export IMAGE="$REGISTRY/$REPOSITORY:$IMAGE_TAG"
           aws eks update-kubeconfig --name $CLUSTER_NAME --region $REGION
-          # infrastruktura / węzły
+          # infrastructure
           kubectl apply -f namespace.yaml
           kubectl apply -f EC2NodeClass.yaml
           kubectl apply -f NodePool.yaml
           kubectl apply -f db/storage.yaml
 
-          # baza
+          # db
           kubectl apply -f db/secret.yaml
           kubectl apply -f db/configmap.yaml
           kubectl -n test create configmap postgres-init \
@@ -79,7 +91,7 @@ jobs:
           kubectl apply -f db/statefulset.yaml
           kubectl -n test rollout status sts/postgres --timeout=300s
 
-          # aplikacja
+          # app
           envsubst '${IMAGE}' < deployment.yaml | kubectl apply -f -
           kubectl apply -f service.yaml
           kubectl -n test rollout status deployment/main-devops-app --timeout=300s
