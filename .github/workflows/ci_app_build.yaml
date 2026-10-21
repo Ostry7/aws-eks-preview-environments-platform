@@ -41,6 +41,12 @@ jobs:
         working-directory: terraform
         run: terraform init
 
+      - name: Debug plugin cache
+        run: |
+          echo "TF_PLUGIN_CACHE_DIR=$TF_PLUGIN_CACHE_DIR"
+          ls -la "$TF_PLUGIN_CACHE_DIR" || echo "BRAK KATALOGU"
+          pwd
+
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
