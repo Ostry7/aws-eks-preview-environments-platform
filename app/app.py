@@ -39,14 +39,14 @@ HTML = """<!DOCTYPE html>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg:       #0d0f14;
-    --surface:  #14171f;
-    --border:   #252932;
-    --accent:   #00e5c3;
-    --accent2:  #ff4d6d;
-    --text:     #e2e8f0;
-    --muted:    #64748b;
-    --radius:   6px;
+    --bg:       #0f0a1f;
+    --surface:  #171230;
+    --border:   #2d2650;
+    --accent:   #a78bfa;
+    --accent2:  #fb923c;
+    --text:     #ede9fe;
+    --muted:    #7c7a99;
+    --radius:   10px;
     --mono:     'IBM Plex Mono', monospace;
     --sans:     'Syne', sans-serif;
   }
