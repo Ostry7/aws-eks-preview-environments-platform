@@ -13,9 +13,20 @@ permissions:
 jobs:
   acr_push:
     runs-on: ubuntu-latest
+    env:
+      TF_PLUGIN_CACHE_DIR: ${{ github.workspace }}/.terraform.d/plugin-cache
     steps:
       - name: Repo checkout
         uses: actions/checkout@v4
+
+      - name: Cache Terraform providers
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/.terraform-plugin-cache
+          key: tf-plugins-${{ hashFiles('terraform/.terraform.lock.hcl') }}
+
+      - name: Create plugin cache dir
+        run: mkdir -p "$TF_PLUGIN_CACHE_DIR"
 
       - name: Configure AWS Credentials for OIDC
         uses: aws-actions/configure-aws-credentials@v6.2.4
@@ -95,4 +106,5 @@ jobs:
           envsubst '${IMAGE}' < deployment.yaml | kubectl apply -f -
           kubectl apply -f service.yaml
           kubectl -n test rollout status deployment/main-devops-app --timeout=300s
+
     
