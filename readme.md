@@ -155,3 +155,33 @@ So how `module A` can  pass sth into `module B`? -> ALWAYS THROUGH ROOT
 ```
 MODULE_A---->output---->ROOT_MODULE---->variable---->MODULE_B
 ```
+
+## Cache/no cache measurements:
+
+### No cache implemented:
+
+| No. | Time (sec) | Avg. Time (sec) | Comment                  | Number of measurements |
+|:---:|------------|-----------------|--------------------------|------------------------|
+| 1.  | 107        | -               | First build              | 1                      |
+| 2.  | 89,101,88  | 93              | App code changed         | 3                      |
+| 3.  | 101,91,102 | 98              | Requirements.txt changed | 3                      |
+|     |            |                 |                          |                        |
+
+
+### Step #1: Buildx and gha layer cache implemented into Dockerfile:
+
+| No. | Time (sec) | Avg. Time (sec) | Comment                  | Number of measurements |
+|:---:|------------|-----------------|--------------------------|------------------------|
+| 1.  | 128        | -               | First build              | 1                      |
+| 2.  | 95,92,91   | 93              | App code changed         | 3                      |
+| 3.  | 96,107,112 | 105             | Requirements.txt changed | 3                      |
+|     |            |                 |                          |                        |
+
+### Step #2: Terraform with Provider Plugin Cache implemented:
+
+| No. | Time (sec) | Avg. Time (sec) | Comment                  | Number of measurements |
+|:---:|------------|-----------------|--------------------------|------------------------|
+| 1.  | 84         | -               | First build              | 1                      |
+| 2.  | 71,95,95   | 87              | App code changed         | 3                      |
+| 3.  | 89,104,112 | 101             | Requirements.txt changed | 3                      |
+|     |            |                 |                          |                        |
