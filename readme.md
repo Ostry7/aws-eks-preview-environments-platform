@@ -158,6 +158,14 @@ MODULE_A---->output---->ROOT_MODULE---->variable---->MODULE_B
 
 ## Cache/no cache measurements:
 
+Each scenario was measured against the full `ci_app_build.yaml` job duration, triggered by changed in `app/`:
+- **First build (cold run):** no cache available
+
+- **App code changed:** only `app.py` code modified. With layer cache working, the `pip install` layer should be reused.
+
+- **Requirements.txt changed:** dependency layer invalidated, so a full `pip install` is expected regardless of cache.
+
+
 ### No cache implemented:
 
 | No. | Time (sec) | Avg. Time (sec) | Comment                  | Number of measurements |
@@ -185,3 +193,27 @@ MODULE_A---->output---->ROOT_MODULE---->variable---->MODULE_B
 | 2.  | 71,95,95   | 87              | App code changed         | 3                      |
 | 3.  | 89,104,112 | 101             | Requirements.txt changed | 3                      |
 |     |            |                 |                          |                        |
+
+### Observations:
+
+- No measurable end-to-end gain from caching. Differences between variants (about 6s at best) are within run-to-run variance 
+
+- First build with cache is slower (128s) because it also exports the cache to the GitHub Actions cache backend. This is expected and is excluded from the "cached" averages.
+
+- Changing `requirements.txt` does not benefit from layer caching by design. The dependency layer is invalidated, so differences in that row are noise.
+
+- The terraform provider plugin cache reduces `terraform init` time slightly, but saving is small relative to the total job duration.
+
+**Why the effect is small?**
+1. Job-level measurement masks step-level gains. The measured value is the whole job duration. Fixed costs dominate it: `setup-terraform`, `terraform init`/`output`, OIDC authentication, and above all the deploy stage (`kubectl rollout status`, which depends on Karpenter node provisioning and rolling updates). Their variance hides any improvement in the build step.
+
+2. The image is small. The application has four Python dependencies on Alpine, so a cold `pip install` takes only seconds. The upper bound on savings from layer caching is low.
+
+3. Cache effectiveness was not verified per step. `CACHED` markers in the `docker/build-push-action` logs should be used to confirm cache hits.
+
+**Conclusions:**
+- Layer caching and the Terraform plugin cache are correctly configured, but they are not the bottleneck of this pipeline.
+
+- Most of the pipeline time is spent in fixed overhead and deployment, not in image build.
+
+- Per-step timing (build and push only) is needed to evaluate caching accurately.
