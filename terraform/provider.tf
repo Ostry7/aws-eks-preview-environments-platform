@@ -24,13 +24,13 @@ terraform {
 
 provider "aws" {
   region = var.aws_region
-  
+
 }
 
 provider "aws" {
-  alias = "virginia"
+  alias  = "virginia"
   region = "us-east-1"
-  
+
 }
 
 data "aws_ecrpublic_authorization_token" "token" {

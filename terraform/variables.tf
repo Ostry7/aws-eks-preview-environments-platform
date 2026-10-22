@@ -47,12 +47,12 @@ variable "tertiary_pub_cidr" {
 
 variable "k8s_cluster_name" {
   description = "Kubernetes cluster name"
-  type = string
-  default = "k8s_cluster"
+  type        = string
+  default     = "k8s_cluster"
 }
 
 variable "ecr_repo_name" {
   description = "Name for ECR repository"
-  type = string
-  default = "main_ecr_repo"
+  type        = string
+  default     = "main_ecr_repo"
 }
