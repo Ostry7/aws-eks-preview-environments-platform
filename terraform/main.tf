@@ -50,3 +50,13 @@ module "traefik" {
 
   depends_on = [module.karpenter]
 }
+
+module "argocd"{
+  source = "./modules/argocd"
+
+  providers = {
+    helm = helm
+  }
+
+  depends_on = [module.karpenter]
+}
