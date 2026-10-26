@@ -1,3 +1,13 @@
+terraform {
+  required_providers {
+    helm = {
+      source                = "hashicorp/helm"
+      configuration_aliases = [helm]
+    }
+  }
+}
+
+
 # Install Traefik using Helm
 resource "helm_release" "traefik" {
     name = "traefik"
