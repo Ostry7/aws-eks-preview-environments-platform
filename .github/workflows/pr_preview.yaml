@@ -75,7 +75,20 @@ jobs:
             --set namespace.name="$NS" \
             --set image.repository="$REPOSITORY_URL" \
             --set-string image.tag="$IMAGE_TAG" \
-            --atomic --wait --timeout 5m
+            --wait --timeout 3m
+
+      - name: Debug on failure
+        if: failure()
+        run: |
+          NS="pr-${PR_NUMBER}"
+          kubectl get pods,pvc,svc -n "$NS" -o wide
+          echo "---- DESCRIBE PODS ----"
+          kubectl describe pods -n "$NS" | tail -100
+          echo "---- EVENTS ----"
+          kubectl get events -n "$NS" --sort-by=.lastTimestamp | tail -30
+          echo "---- NODES ----"
+          kubectl get nodes
+          kubectl get nodepool,nodeclaim 2>/dev/null || true
 
       - name: Show endpoint
         run: |
