@@ -4,10 +4,10 @@ metadata:
   name: main-devops-app
   namespace: {{ .Values.namespace.name }}
 spec:
-  type: LoadBalancer
+  type: {{ .Values.service.type }}
   selector:
     app: main-devops-app
   ports:
-    - port: 80
-      targetPort: 5000
-      protocol: TCP
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+      protocol: {{ .Values.service.protocol }}
