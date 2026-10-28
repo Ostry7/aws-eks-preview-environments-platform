@@ -9,11 +9,11 @@ spec:
   selector:
     matchLabels:
       app: main-devops-app
-  replicas: 2
+  replicas: {{ .Values.spec.replicas }}
   strategy:
     rollingUpdate:
-      maxSurge: 25%
-      maxUnavailable: 25%
+      maxSurge: {{ .Values.spec.rollingUpdate.maxSurge }}
+      maxUnavailable: {{ .Values.spec.rollingUpdate.maxUnavailable }}
     type: RollingUpdate
   template:
     metadata:
