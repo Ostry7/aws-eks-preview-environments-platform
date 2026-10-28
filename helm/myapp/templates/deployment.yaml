@@ -22,7 +22,8 @@ spec:
     spec:
       containers:
       - name: main-devops-app
-        image: ${IMAGE}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
         resources:
           requests:
             cpu: 100m
@@ -42,4 +43,5 @@ spec:
         - name: ENV
           value: test
         ports:
-        - containerPort: 5000
+        - name: http
+          containerPort: 5000
