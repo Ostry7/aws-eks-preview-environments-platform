@@ -1,0 +1,83 @@
+name: pr_preview
+
+on:
+  workflow_dispatch: 
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - "app/**"
+      - "helm/**"
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  build_deploy:
+    runs-on: ubuntu-latest
+    env:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      IMAGE_TAG: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v6.2.4
+        with:
+          aws-region: eu-north-1
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false   # inaczej output -raw dodaje śmieci
+
+      - name: Terraform init
+        working-directory: terraform
+        run: terraform init
+
+      - name: Get terraform outputs
+        id: get-vars
+        working-directory: terraform
+        run: |
+          echo "ecr_repo_name=$(terraform output -raw ecr_repo_name)" >> "$GITHUB_OUTPUT"
+          echo "cluster_name=$(terraform output -raw cluster_name)" >> "$GITHUB_OUTPUT"
+          echo "region=$(terraform output -raw region)" >> "$GITHUB_OUTPUT"
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - uses: docker/setup-buildx-action@v4
+
+      - name: Build and push image
+        uses: docker/build-push-action@v7
+        with:
+          context: app
+          push: true
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ steps.get-vars.outputs.ecr_repo_name }}:${{ env.IMAGE_TAG }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Deploy with Helm
+        env:
+          CLUSTER_NAME: ${{ steps.get-vars.outputs.cluster_name }}
+          REGION: ${{ steps.get-vars.outputs.region }}
+          REPOSITORY_URL: ${{ steps.login-ecr.outputs.registry }}/${{ steps.get-vars.outputs.ecr_repo_name }}
+        run: |
+          NS="pr-${PR_NUMBER}"
+          aws eks update-kubeconfig --name "$CLUSTER_NAME" --region "$REGION"
+
+          helm upgrade --install "app-${NS}" ./helm/myapp \
+            --namespace "$NS" --create-namespace \
+            --set namespace.name="$NS" \
+            --set image.repository="$REPOSITORY_URL" \
+            --set-string image.tag="$IMAGE_TAG" \
+            --atomic --wait --timeout 5m
+
+      - name: Show endpoint
+        run: |
+          kubectl get svc main-devops-app -n "pr-${PR_NUMBER}" \
+            -o jsonpath='{.status.loadBalancer.ingress[0].hostname}{"\n"}'
