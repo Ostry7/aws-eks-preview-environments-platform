@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PR_NUMBER: ${{ github.event.pull_request.number }}
-      IMAGE_TAG: ${{ github.event.pull_request.head.sha }}
+      IMAGE_TAG: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@v4
 
