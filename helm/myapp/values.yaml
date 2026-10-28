@@ -160,4 +160,6 @@ tolerations: []
 
 affinity: {}
 
-
+# Parametrize namespace (per PR)
+namespace:
+  name: ns-numberX

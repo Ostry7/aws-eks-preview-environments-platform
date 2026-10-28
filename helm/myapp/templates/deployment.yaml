@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name:  main-devops-app
-  namespace: test
+  namespace: {{ .Values.namespace.name}}
   labels:
     app:  main-devops-app
 spec:
