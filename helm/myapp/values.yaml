@@ -8,7 +8,7 @@ replicaCount: 2
 # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
 image:
 #<account_id>.dkr.ecr.<region>.amazonaws.com/<repo_name>
-  repository: 521764600585.dkr.ecr.eu-central-1.amazonaws.com/main-devops-app
+  repository: 521764600585.dkr.ecr.eu-north-1.amazonaws.com/main_ecr_repo
   tag: ""
   pullPolicy: IfNotPresent
 
