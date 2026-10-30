@@ -80,19 +80,6 @@ jobs:
             --set-string image.tag="$IMAGE_TAG" \
             --wait --timeout 3m
 
-      - name: Debug on failure
-        if: failure()
-        run: |
-          NS="pr-${PR_NUMBER}"
-          kubectl get pods,pvc,svc -n "$NS" -o wide
-          echo "---- DESCRIBE PODS ----"
-          kubectl describe pods -n "$NS" | tail -100
-          echo "---- EVENTS ----"
-          kubectl get events -n "$NS" --sort-by=.lastTimestamp | tail -30
-          echo "---- NODES ----"
-          kubectl get nodes
-          kubectl get nodepool,nodeclaim 2>/dev/null || true
-
       - name: Show endpoint
         run: |
           kubectl get svc main-devops-app -n "pr-${PR_NUMBER}" \
