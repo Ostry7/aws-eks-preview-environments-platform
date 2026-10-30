@@ -24,7 +24,44 @@ def get_db():
         dbname   = os.getenv("DB_NAME",     "devops_db"),
         user     = os.getenv("DB_USER",     "postgres"),
         password = os.getenv("DB_PASSWORD", "postgres"),
+        connect_timeout = 3,
     )
+
+
+# ── Debug info (shown in header bar and at /debug) ────────────────────────────
+def get_debug_info():
+    if os.getenv("SHOW_DEBUG", "true").lower() != "true":
+        return None
+    info = {
+        "db_host":   os.getenv("DB_HOST", "localhost"),
+        "db_port":   os.getenv("DB_PORT", "5432"),
+        "db_name":   os.getenv("DB_NAME", "devops_db"),
+        "db_user":   os.getenv("DB_USER", "postgres"),
+        "pod":       os.getenv("HOSTNAME", "-"),
+        "namespace": os.getenv("POD_NAMESPACE", "-"),
+        "image_tag": os.getenv("IMAGE_TAG", "-"),
+        "db_status": "ok",
+    }
+    conn = None
+    try:
+        conn = get_db()
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT current_database(), current_user,
+                       inet_server_addr()::text,
+                       split_part(version(), ' ', 2),
+                       (SELECT count(*) FROM information_schema.tables
+                        WHERE table_schema = 'public')
+            """)
+            db, usr, addr, ver, ntables = cur.fetchone()
+        info.update(server_db=db, server_user=usr, server_addr=addr,
+                    pg_version=ver, tables=ntables)
+    except Exception as e:
+        info["db_status"] = f"ERROR: {e}"
+    finally:
+        if conn:
+            conn.close()
+    return info
 
 # ── HTML template ──────────────────────────────────────────────────────────────
 HTML = """<!DOCTYPE html>
@@ -353,6 +390,21 @@ HTML = """<!DOCTYPE html>
   .msg.success { background: rgba(167,139,250,.1); color: var(--accent); border: 1px solid rgba(167,139,250,.2); }
   .msg.error   { background: rgba(251,146,60,.1); color: var(--accent2); border: 1px solid rgba(251,146,60,.2); }
 
+  /* ── DEBUG BAR ── */
+  .debug-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    padding: 8px 32px;
+    background: #130e28;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+  }
+  .debug-bar b { color: var(--accent); font-weight: 600; }
+  .debug-bar .err { color: var(--accent2); }
+
   /* scrollbar */
   ::-webkit-scrollbar { width: 5px; height: 5px; }
   ::-webkit-scrollbar-track { background: var(--bg); }
@@ -369,6 +421,24 @@ HTML = """<!DOCTYPE html>
   </div>
   <div class="status-dot"></div>
 </header>
+
+{% if debug %}
+<div class="debug-bar">
+  <span>host: <b>{{ debug.db_host }}:{{ debug.db_port }}</b></span>
+  <span>db: <b>{{ debug.db_name }}</b></span>
+  <span>user: <b>{{ debug.db_user }}</b></span>
+  {% if debug.db_status == 'ok' %}
+    <span>server: <b>{{ debug.server_addr }}</b></span>
+    <span>pg: <b>{{ debug.pg_version }}</b></span>
+    <span>tables: <b>{{ debug.tables }}</b></span>
+  {% else %}
+    <span class="err">{{ debug.db_status }}</span>
+  {% endif %}
+  <span>pod: <b>{{ debug.pod }}</b></span>
+  <span>ns: <b>{{ debug.namespace }}</b></span>
+  <span>image: <b>{{ debug.image_tag[:12] }}</b></span>
+</div>
+{% endif %}
 
 <div class="main">
 
@@ -629,9 +699,16 @@ def index():
         return render_template_string(HTML,
             users=users, products=products,
             env=os.getenv("ENV", "dev"),
-            db_mode=os.getenv("DB_MODE", "PRIMARY"))
+            db_mode=os.getenv("DB_MODE", "PRIMARY"),
+            debug=get_debug_info())
     except Exception as e:
         return f"<pre>DB error: {e}</pre>", 500
+
+
+@app.route("/debug")
+def debug_info():
+    info = get_debug_info()
+    return (jsonify(info), 200) if info else (jsonify(error="disabled"), 404)
 
 
 @app.route("/api/data")
