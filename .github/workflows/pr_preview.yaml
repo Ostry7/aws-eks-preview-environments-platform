@@ -52,6 +52,9 @@ jobs:
 
       - uses: docker/setup-buildx-action@v4
 
+      - name: Configure kubeconfig
+        run: aws eks update-kubeconfig --name k8s_cluster --region eu-north-1
+
       - name: Build and push image
         uses: docker/build-push-action@v7
         with:
