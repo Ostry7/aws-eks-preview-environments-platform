@@ -12,6 +12,10 @@ terraform {
       source  = "hashicorp/helm"
       version = "~> 2.16"
     }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "~> 2.35"
+    }
   }
   backend "s3" {
     bucket       = "terraform-state-ostry7-2341789"
@@ -24,19 +28,16 @@ terraform {
 
 provider "aws" {
   region = var.aws_region
-
 }
 
 provider "aws" {
   alias  = "virginia"
   region = "us-east-1"
-
 }
 
 data "aws_ecrpublic_authorization_token" "token" {
   provider = aws.virginia
 }
-
 
 provider "helm" {
   kubernetes {
@@ -47,5 +48,15 @@ provider "helm" {
       command     = "aws"
       args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name, "--region", var.aws_region]
     }
+  }
+}
+
+provider "kubernetes" {
+  host                   = module.eks.cluster_endpoint
+  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+  exec {
+    api_version = "client.authentication.k8s.io/v1beta1"
+    command     = "aws"
+    args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name, "--region", var.aws_region]
   }
 }
