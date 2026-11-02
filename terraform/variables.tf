@@ -56,3 +56,9 @@ variable "ecr_repo_name" {
   type        = string
   default     = "main_ecr_repo"
 }
+
+variable "github_pat" {
+    description = "ArgoCD PAT from Github"
+    type = string
+    sensitive = true
+}
