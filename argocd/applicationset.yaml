@@ -9,13 +9,11 @@ spec:
   generators:
   - pullRequest:
       github:
-        owner: <twoj-user>
+        owner: Ostry7
         repo: aws-eks-preview-environments-platform
         tokenRef:
           secretName: github-token
-          key: token
-        labels:
-        - preview       
+          key: token     
       requeueAfterSeconds: 60
   template:
     metadata:
@@ -27,7 +25,7 @@ spec:
       source:
         repoURL: https://github.com/Ostry7/aws-eks-preview-environments-platform.git
         targetRevision: '{{.head_sha}}'
-        path: charts/app
+        path: helm/myapp
         helm:
           parameters:
           - name: namespace.name
