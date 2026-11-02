@@ -26,11 +26,15 @@ jobs:
 
       - run: terraform apply -auto-approve -lock-timeout=60s
         working-directory: terraform
-
+        env:
+          TF_VAR_github_pat: ${{ secrets.ARGOCD_PAT }}
+      
       - run: sleep 15
-
+      
       - run: terraform apply -auto-approve -lock-timeout=60s
         working-directory: terraform
+        env:
+          TF_VAR_github_pat: ${{ secrets.ARGOCD_PAT }}
 
       - name: Get K8s cluster name from TF Output
         id: tf_output

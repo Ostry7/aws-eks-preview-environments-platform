@@ -1,0 +1,48 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: preview-envs
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+  - pullRequest:
+      github:
+        owner: <twoj-user>
+        repo: aws-eks-preview-environments-platform
+        tokenRef:
+          secretName: github-token
+          key: token
+        labels:
+        - preview       
+      requeueAfterSeconds: 60
+  template:
+    metadata:
+      name: 'pr-{{.number}}'
+      finalizers:
+      - resources-finalizer.argocd.argoproj.io
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/Ostry7/aws-eks-preview-environments-platform.git
+        targetRevision: '{{.head_sha}}'
+        path: charts/app
+        helm:
+          parameters:
+          - name: namespace.name
+            value: 'pr-{{.number}}'
+          - name: image.tag
+            value: '{{.head_short_sha}}'
+          - name: ingress.host
+            value: 'pr-{{.number}}.preview.twojadomena.pl'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: 'pr-{{.number}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        retry:
+          limit: 5
+          backoff: { duration: 10s, factor: 2, maxDuration: 3m }

@@ -3,6 +3,9 @@ terraform {
     helm = {
       source = "hashicorp/helm"
     }
+    kubernetes = {
+      source = "hashicorp/kubernetes"
+    }
   }
 }
 
@@ -17,4 +20,15 @@ resource "helm_release" "argocd" {
   values = [ 
     file("${path.module}/values/argocd.yaml")
    ]
+}
+
+resource "kubernetes_secret_v1" "github_token" {
+  metadata {
+    name      = "github-token"
+    namespace = "argocd"
+  }
+  data = {
+    token = var.github_pat
+  }
+  depends_on = [helm_release.argocd]
 }
