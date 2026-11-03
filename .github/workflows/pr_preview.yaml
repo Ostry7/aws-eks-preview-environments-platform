@@ -74,7 +74,7 @@ jobs:
           aws eks update-kubeconfig --name "$CLUSTER_NAME" --region "$REGION"
 
           helm upgrade --install "app-${NS}" ./helm/myapp \
-            --namespace "$NS" --create-namespace \
+            --namespace default \
             --set namespace.name="$NS" \
             --set image.repository="$REPOSITORY_URL" \
             --set-string image.tag="$IMAGE_TAG" \
