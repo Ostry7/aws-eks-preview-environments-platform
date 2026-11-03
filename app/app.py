@@ -414,7 +414,7 @@ HTML = """<!DOCTYPE html>
 <body>
 
 <header>
-  <div class="logo">devops<span>/</span>portfolio <span>— preview platform</span></div>
+  <div class="logo">devops<span>/</span>portfolio <span>— preview platform wtf is there !</span></div>
   <div class="env-badge">{{ env }}</div>
   <div class="db-badge {{ 'dr' if db_mode == 'DR' else 'primary' }}">
     db: {{ db_mode }}
