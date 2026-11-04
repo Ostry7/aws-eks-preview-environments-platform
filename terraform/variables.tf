@@ -62,3 +62,22 @@ variable "github_pat" {
     type = string
     sensitive = true
 }
+
+variable "function_name" {
+  description = "Name of Lambda function"
+  type = string
+  default = "del_env_on_closed_pr"
+}
+
+variable "ttl_hours" {
+  description = "Amount of hours when Lambda destroy env"
+  type = number
+  default = 1
+}
+
+variable "dry_run" {
+  description = "When true on first deploy won't delete env"
+  type = bool
+  default = true
+
+}
