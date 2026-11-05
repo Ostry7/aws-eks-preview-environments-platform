@@ -26,6 +26,7 @@ env:
   CLUSTER_NAME: k8s_cluster
   REGION: eu-north-1
   DRY_RUN: ${{ inputs.dry_run }}
+  TF_VAR_github_pat: ${{ secrets.ARGOCD_PAT }}
 
 jobs:
   teardown:
