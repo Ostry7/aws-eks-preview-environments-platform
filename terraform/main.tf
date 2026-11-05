@@ -61,12 +61,3 @@ module "argocd"{
 
   depends_on = [module.karpenter]
 }
-
-#Lambda reaper module:
-module "reaper" {
-  source = "./modules/reaper"
-
-  function_name = var.function_name
-  k8s_cluster_name = var.k8s_cluster_name
-  aws_region = var.aws_region
-}
