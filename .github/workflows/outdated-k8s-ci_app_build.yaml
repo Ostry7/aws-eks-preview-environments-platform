@@ -1,0 +1,116 @@
+name: ci_app_build.yaml
+on:
+  workflow_dispatch: 
+  push:
+    branches: [main]
+    paths: 
+      - "app/**"
+
+permissions:
+  id-token: write
+  contents: read
+  
+jobs:
+  acr_push:
+    runs-on: ubuntu-latest
+    env:
+      TF_PLUGIN_CACHE_DIR: ${{ github.workspace }}/.terraform.d/plugin-cache
+    steps:
+      - name: Repo checkout
+        uses: actions/checkout@v4
+
+      - name: Cache Terraform providers
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/.terraform.d/plugin-cache
+          key: tf-plugins-${{ hashFiles('terraform/.terraform.lock.hcl') }}
+
+      - name: Create plugin cache dir
+        run: mkdir -p "$TF_PLUGIN_CACHE_DIR"
+
+      - name: Configure AWS Credentials for OIDC
+        uses: aws-actions/configure-aws-credentials@v6.2.4
+        with:
+          aws-region: eu-north-1
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform init
+        working-directory: terraform
+        run: terraform init
+
+      - name: Debug plugin cache
+        run: |
+          echo "TF_PLUGIN_CACHE_DIR=$TF_PLUGIN_CACHE_DIR"
+          ls -la "$TF_PLUGIN_CACHE_DIR" || echo "BRAK KATALOGU"
+          pwd
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Get required env variables
+        id: get-vars
+        working-directory: terraform
+        run: |
+          echo "ecr_repo_name=$(terraform output -raw ecr_repo_name)" >> "$GITHUB_OUTPUT"
+          echo "cluster_name=$(terraform output -raw cluster_name)" >> "$GITHUB_OUTPUT"
+          echo "region=$(terraform output -raw region)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+      
+      - name: Build and push docker image to Amazon ECR (gha cache)
+        uses: docker/build-push-action@v7
+        with:
+          context: app
+          push: true
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ steps.get-vars.outputs.ecr_repo_name }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      #- name: Build, tag, and push docker image to Amazon ECR
+      #  working-directory: app
+      #  env:
+      #    REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      #    REPOSITORY: ${{ steps.get-vars.outputs.ecr_repo_name }}
+      #    IMAGE_TAG: ${{ github.sha }}
+      #  run: |
+      #    docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
+      #    docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+
+      - name: Deploy to EKS Cluster
+        working-directory: k8s
+        env:
+          CLUSTER_NAME: ${{ steps.get-vars.outputs.cluster_name }}
+          REGION: ${{ steps.get-vars.outputs.region }}
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: ${{ steps.get-vars.outputs.ecr_repo_name }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          export IMAGE="$REGISTRY/$REPOSITORY:$IMAGE_TAG"
+          aws eks update-kubeconfig --name $CLUSTER_NAME --region $REGION
+          # infrastructure
+          kubectl apply -f namespace.yaml
+          kubectl apply -f EC2NodeClass.yaml
+          kubectl apply -f NodePool.yaml
+          kubectl apply -f db/storage.yaml
+
+          # db
+          kubectl apply -f db/secret.yaml
+          kubectl apply -f db/configmap.yaml
+          kubectl -n test create configmap postgres-init \
+            --from-file=init-db.sql=../app/init-db.sql \
+            --dry-run=client -o yaml | kubectl apply -f -
+          kubectl apply -f db/service.yaml
+          kubectl apply -f db/statefulset.yaml
+          kubectl -n test rollout status sts/postgres --timeout=300s
+
+          # app
+          envsubst '${IMAGE}' < deployment.yaml | kubectl apply -f -
+          kubectl apply -f service.yaml
+          kubectl -n test rollout status deployment/main-devops-app --timeout=300s
+
+    
