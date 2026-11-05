@@ -1,9 +1,0 @@
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata: {
-  name: preview-reaper-secrets,
-  namespace: default }
-rules:
-  - apiGroups: [""]
-    resources: ["secrets"]
-    verbs: ["list", "delete", "deletecollection"]
