@@ -217,3 +217,20 @@ Each scenario was measured against the full `ci_app_build.yaml` job duration, tr
 - Most of the pipeline time is spent in fixed overhead and deployment, not in image build.
 
 - Per-step timing (build and push only) is needed to evaluate caching accurately.
+
+
+## AWS Lambda objectives:
+
+- opt-in via tags -> reaper only processes resources with the `reaper=enabled` tag and an expiration marker (`ttl_hours` or `expires-at`); **no tag = do not touch**
+
+- detection of expired clusters. List of clusters (paginator), reading of tags and `createAt`, comparison with th ecurrent UTC time.
+
+- dry-run -> by default it only logs what it would delete. Actual deletion must be explicitly enabled (environment variable).
+
+- correct deletion order: NodeGroups -> Fargate profiles -> cluster. First, delete the resources that make up th eload balancer (LoadBalancer and Ingress services) to ensure that ELBs, ENIs, and security groups are not left orphaned.
+
+- idempotence -> each execution can be repeated without causing harm: DELETING states are ignored, and the absence of a resource is not an error.
+
+- safeguards -> exclusion list (names/tags, e.g. protected=true)
+
+- least privilege IAM, only necessary actions, e.g.,* restricted by a resource tag condition
