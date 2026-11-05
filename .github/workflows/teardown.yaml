@@ -1,0 +1,79 @@
+name: teardown
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Wpisz DESTROY, aby usunąć całe środowisko'
+        required: true
+      dry_run:
+        description: 'Tylko pokaż, co zostanie usunięte (nic nie kasuje)'
+        type: boolean
+        default: true
+      vpc_id:
+        description: 'Opcjonalnie: VPC ID (gdy klastra już nie ma)'
+        required: false
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: teardown
+  cancel-in-progress: false
+
+env:
+  CLUSTER_NAME: k8s_cluster
+  REGION: eu-north-1
+  DRY_RUN: ${{ inputs.dry_run }}
+
+jobs:
+  teardown:
+    if: inputs.confirm == 'DESTROY'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v6.2.4
+        with:
+          aws-region: eu-north-1
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      # VPC trzeba zapamiętać, zanim cokolwiek usuniemy (po skasowaniu klastra nie da się go odczytać)
+      - name: Resolve VPC
+        run: |
+          VPC=$(aws eks describe-cluster --name "$CLUSTER_NAME" --region "$REGION" \
+            --query 'cluster.resourcesVpcConfig.vpcId' --output text 2>/dev/null || true)
+          VPC="${VPC:-${{ inputs.vpc_id }}}"
+          echo "VPC_ID=$VPC" >> "$GITHUB_ENV"
+          echo "VPC: ${VPC:-brak}"
+
+      - name: Terraform init
+        working-directory: terraform
+        run: terraform init -input=false
+
+      - name: Kubernetes cleanup (release'y, namespace'y, LB, Karpenter)
+        run: bash scripts/teardown-sweep.sh k8s
+
+      - name: AWS sweep (instancje, LB, ENI, SG, EBS)
+        run: bash scripts/teardown-sweep.sh aws
+
+      - name: Terraform destroy
+        working-directory: terraform
+        run: |
+          if [ "$DRY_RUN" = "true" ]; then
+            terraform plan -destroy -input=false
+            exit 0
+          fi
+          for attempt in 1 2 3; do
+            terraform destroy -auto-approve -input=false && exit 0
+            echo "::warning::destroy nieudany (próba $attempt), sweep i ponowienie"
+            (cd .. && bash scripts/teardown-sweep.sh aws)
+            sleep 60
+          done
+          exit 1
