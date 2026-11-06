@@ -81,3 +81,9 @@ variable "dry_run" {
   default = true
 
 }
+
+variable "function_name" {
+  description = "Name of lambda function"
+  type = string
+  default = "lambda_reaper_function"
+}
