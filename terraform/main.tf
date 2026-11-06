@@ -23,7 +23,6 @@ module "eks" {
   vpc_id             = module.network.vpc_id
   private_subnet_ids = module.network.private_subnet_ids
   k8s_cluster_name   = var.k8s_cluster_name
-  lambda_role_arn = module.lambda.role_arn
 }
 
 module "karpenter" {
