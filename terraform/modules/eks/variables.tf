@@ -12,3 +12,8 @@ variable "k8s_cluster_name" {
   description = "Kubernetes cluster name"
   type = string
 }
+
+variable "lambda_role_arn" {
+  description = "Lambda ARN value"
+  type = string  
+}
