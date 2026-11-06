@@ -28,7 +28,7 @@ module "eks" {
       }
     }
     lambda = {
-      principal_arn = module.lambda.role_arn
+      principal_arn = var.lambda_role_arn
       policy_associations = {
         view = {
           policy_arn   = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"
