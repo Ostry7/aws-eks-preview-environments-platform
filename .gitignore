@@ -38,3 +38,6 @@ override.tf.json
 terraform.rc
 /.terraform.lock.hcl
 # End of https://www.toptal.com/developers/gitignore/api/terraform
+
+lambda/reaper/build/
+*.zip
