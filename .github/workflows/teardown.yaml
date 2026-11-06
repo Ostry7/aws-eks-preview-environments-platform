@@ -38,14 +38,14 @@ jobs:
 
       - uses: aws-actions/configure-aws-credentials@v6.2.4
         with:
-          aws-region: eu-north-1
+          aws-region: eu-north-1 # Upewnij się, czy nie miało być eu-central-1
           role-to-assume: ${{ secrets.AWS_IAM_ROLE }}
+          role-duration-seconds: 7200 # Wydłużenie sesji zapobiega wygaśnięciu tokena podczas długiego niszczenia
 
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_wrapper: false
 
-      # VPC trzeba zapamiętać, zanim cokolwiek usuniemy (po skasowaniu klastra nie da się go odczytać)
       - name: Resolve VPC
         run: |
           VPC=$(aws eks describe-cluster --name "$CLUSTER_NAME" --region "$REGION" \
@@ -54,15 +54,30 @@ jobs:
           echo "VPC_ID=$VPC" >> "$GITHUB_ENV"
           echo "VPC: ${VPC:-brak}"
 
+      - name: Configure Kubeconfig
+        # Ignorujemy błąd, jeśli klaster został już usunięty w poprzednim, przerwanym przebiegu
+        run: |
+          aws eks update-kubeconfig --name "$CLUSTER_NAME" --region "$REGION" 2>/dev/null || echo "Klaster nie istnieje, pomijam kubeconfig"
+
       - name: Terraform init
         working-directory: terraform
         run: terraform init -input=false
 
       - name: Kubernetes cleanup (release'y, namespace'y, LB, Karpenter)
-        run: bash scripts/teardown-sweep.sh k8s
+        run: |
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "DRY_RUN=true: Pomijam skrypt czyszczący K8s."
+          else
+            bash scripts/teardown-sweep.sh k8s
+          fi
 
       - name: AWS sweep (instancje, LB, ENI, SG, EBS)
-        run: bash scripts/teardown-sweep.sh aws
+        run: |
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "DRY_RUN=true: Pomijam skrypt czyszczący AWS."
+          else
+            bash scripts/teardown-sweep.sh aws
+          fi
 
       - name: Terraform destroy
         working-directory: terraform
@@ -71,6 +86,7 @@ jobs:
             terraform plan -destroy -input=false
             exit 0
           fi
+          
           for attempt in 1 2 3; do
             terraform destroy -auto-approve -input=false && exit 0
             echo "::warning::destroy nieudany (próba $attempt), sweep i ponowienie"
