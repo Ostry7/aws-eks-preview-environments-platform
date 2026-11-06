@@ -23,6 +23,7 @@ module "eks" {
   vpc_id             = module.network.vpc_id
   private_subnet_ids = module.network.private_subnet_ids
   k8s_cluster_name   = var.k8s_cluster_name
+  lambda_role_arn = module.lambda.role_arn
 }
 
 module "karpenter" {
@@ -67,4 +68,8 @@ module "lambda" {
 
   function_name = var.function_name
   cluster_arn = module.eks.cluster_arn
+  k8s_cluster_name = var.k8s_cluster_name
+  aws_region = var.aws_region
+
+  depends_on = [ module.eks ]
 }
