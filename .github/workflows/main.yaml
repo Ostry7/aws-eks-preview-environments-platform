@@ -15,6 +15,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Build Lambda package
+        run: bash lambda/reaper/build-lambda.sh
+
       - name: Configure AWS Credentials for OIDC
         uses: aws-actions/configure-aws-credentials@v6.2.4
         with:
@@ -47,7 +50,10 @@ jobs:
          aws eks update-kubeconfig --name ${{ steps.tf_output.outputs.cluster_name }} --region eu-north-1
          kubectl apply -f EC2NodeClass.yaml
          kubectl apply -f NodePool.yaml
+         kubectl apply -f reaper-rbac.yaml
         working-directory: k8s
+
+
 
 
           
