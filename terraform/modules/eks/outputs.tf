@@ -13,3 +13,7 @@ output "cluster_certificate_authority_data" {
 output "oidc_provider" {
   value = module.eks.oidc_provider
 }
+
+output "cluster_arn" {
+  value = module.eks.cluster_arn
+}
