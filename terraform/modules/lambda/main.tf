@@ -14,7 +14,7 @@ resource "aws_lambda_function" "reaper" {
   function_name    = var.function_name
   role             = aws_iam_role.lambda.arn
   handler          = "reaper.lambda_handler"
-  runtime          = "python3.14"
+  runtime          = "python3.12"
   architectures    = ["x86_64"]
   timeout          = 60
   memory_size      = 256
