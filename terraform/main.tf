@@ -61,3 +61,10 @@ module "argocd"{
 
   depends_on = [module.karpenter]
 }
+
+module "lambda" {
+  source = "./modules/lambda"
+
+  function_name = var.function_name
+  cluster_arn = module.eks.cluster_arn
+}
