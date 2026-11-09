@@ -3,6 +3,7 @@ import os
 import boto3
 from botocore.signers import RequestSigner
 from kubernetes import client
+from kubernetes.client.rest import ApiException
 
 CLUSTER = os.environ["CLUSTER_NAME"]
 REGION = os.environ.get("AWS_REGION", "eu-central-1")
@@ -44,8 +45,22 @@ def get_api_client(cluster_name, region):
     cfg.api_key = {"authorization": "Bearer " + get_token(cluster_name, region)}
     return client.ApiClient(cfg)
 
+# Delete all Kubernetes resources based on pull request namespace
+def delete_k8s_resources(v1, pr_number):
+    pr_name = f"pr-{int(pr_number)}"
+    print(f"\nBegin delete {pr_name} ...")
+
+    try:
+        v1.delete_namespace(name=pr_name)
+    except ApiException as e:
+        if e.status != 404:
+            raise
+        print(f"\nNamespace {pr_name} has already deleted")
+    print(f"\nNamespace {pr_name} successfully deleted :(")
+
+
 
 def lambda_handler(event, context):
     v1 = client.CoreV1Api(get_api_client(CLUSTER, REGION))
-    for p in v1.list_pod_for_all_namespaces().items:
-        print(p.status.pod_ip, p.metadata.namespace, p.metadata.name)
+    delete_k8s_resources(v1, event["pr_number"])
+        
