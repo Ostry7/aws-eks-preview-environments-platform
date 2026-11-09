@@ -78,7 +78,7 @@ jobs:
             --set namespace.name="$NS" \
             --set image.repository="$REPOSITORY_URL" \
             --set-string image.tag="$IMAGE_TAG" \
-            --wait --timeout 3m
+            --wait --timeout 10m
 
       - name: Show endpoint
         run: |
