@@ -60,7 +60,7 @@ def delete_k8s_resources(v1, pr_number):
 
 
 
-def lambda_handler(event):
+def lambda_handler(event, context):
     v1 = client.CoreV1Api(get_api_client(CLUSTER, REGION))
     delete_k8s_resources(v1, event["pr_number"])
         
