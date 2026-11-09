@@ -1,0 +1,41 @@
+name: pr_preview
+
+on:
+  workflow_dispatch: 
+  pull_request:
+    types: [closed]
+    paths:
+      - "app/**"
+      - "helm/**"
+
+permissions:
+  id-token: write
+  contents: read
+
+
+jobs:
+  lambda_cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::521764600585:role/github-actions-admin-role
+          aws-region: eu-north-1
+
+      - name: Invoke cleanup Lambda
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          RESULT=$(aws lambda invoke \
+            --function-name del_env_on_closed_pr \
+            --cli-binary-format raw-in-base64-out \
+            --payload "{\"pr_number\": $PR_NUMBER}" \
+            --query FunctionError \
+            --output text \
+            response.json)
+          cat response.json
+          if [ "$RESULT" != "None" ]; then
+            echo "Lambda failed: $RESULT"
+            exit 1
+          fi
